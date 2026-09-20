@@ -1,0 +1,24 @@
+# Core
+python-dotenv>=1.0.0
+requests>=2.31.0
+pandas>=2.0.0
+
+# Technical indicators (optional but recommended)
+pandas-ta>=0.3.14b
+
+# AI models
+anthropic>=0.25.0
+google-genai>=1.0.0
+
+# Broker
+alpaca-py>=0.20.0
+
+# Scheduling (Module 6)
+APScheduler>=3.10.0
+
+# Notifications (Module 6)
+twilio>=8.0.0
+sendgrid>=6.11.0
+
+# Database for trade log (Module 5)
+# built-in sqlite3 — no install needed
