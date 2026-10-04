@@ -1,6 +1,5 @@
-# Trading Bot — macOS Setup & Operations Manual
+# Trading Bot — macOS Setup & Operations Manual (Written with Claude)
 
----
 
 ## What This Bot Does
 
