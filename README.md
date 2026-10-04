@@ -16,7 +16,7 @@ Every weekday:
 | Sat 9:00 | Weekly validation report |
 | Sun 20:00 | Auto-tune strategy parameters |
 
-The watchlist maintains itself: Gemini proposes tickers across various sectors, stale tickers are pruned, recently traded tickers sit out with a cooldown.
+The watchlist maintains itself. AI proposes tickers across various sectors, stale tickers get pruned, recently traded tickers sit on a cooldown.
 
 ## Architecture
 
