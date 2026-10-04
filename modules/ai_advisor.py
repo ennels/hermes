@@ -155,7 +155,7 @@ Current risk mode: {params.get('_risk_mode', 'NORMAL')}
 {positions_str}
 
 ── RECENT TRADES (last 20) ──────────────────────────────────
-{'chr(10).join(recent_trades[:20])}
+{chr(10).join(recent_trades[:20])}
 
 ── CURRENT PARAMETERS ───────────────────────────────────────
 Total budget:     ${params.get('total_budget_usd', 0):,.0f}
@@ -171,7 +171,7 @@ Run time (ET):    {params.get('run_time_et', '09:45')}
 {', '.join(WATCHLIST)}
 
 ── RECENT PARAMETER CHANGES ────────────────────────────────
-{'chr(10).join(history_lines)}
+{chr(10).join(history_lines)}
 
 ── EARNINGS PLAYS ───────────────────────────────────────────
 {earnings_context}

@@ -15,6 +15,7 @@ alpaca-py>=0.20.0
 
 # Scheduling (Module 6)
 APScheduler>=3.10.0
+pytz>=2023.3
 
 # Notifications (Module 6)
 twilio>=8.0.0
@@ -22,3 +23,6 @@ sendgrid>=6.11.0
 
 # Database for trade log (Module 5)
 # built-in sqlite3 — no install needed
+
+# Dashboard charts
+matplotlib>=3.7.0

@@ -13,9 +13,10 @@ Run with:  python main.py
 import os
 import sys
 import logging
+import time
 from datetime import datetime, timezone
 
-from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import pytz
 
@@ -48,11 +49,7 @@ from modules.sector_rotation import (
     get_ticker_adjustments, notify_rotation_update,
 )
 from modules.watchlist_manager import (
-    run_watchlist_manager, notify_watchlist_changes,
-    get_watchlist_history,
-)
-from modules.watchlist_manager import (
-    run_watchlist_manager, get_watchlist_history,
+    run_watchlist_manager, get_watchlist_change_log,
 )
 
 from config.settings import WATCHLIST, RUN_TIME_ET
@@ -280,50 +277,38 @@ def rotation_now():
     else:
         print("Analysis failed — check logs")
 
-def watchlist_now():
-    """Trigger immediate watchlist discovery and cleanup."""
-    log.info("Manual watchlist manager triggered")
-    result = run_watchlist_manager()
-    notify_watchlist_changes(result)
-    print(f"Watchlist: +{len(result['additions'])} -{len(result['removals'])} = {result['new_count']} tickers")
-    if result['additions']:
-        print(f"Added: {', '.join(a['ticker'] for a in result['additions'])}")
-    if result['removals']:
-        print(f"Removed: {', '.join(r['ticker'] for r in result['removals'])}")
-
 def watchlist_history(limit: int = 10):
     """Show recent watchlist changes."""
-    history = get_watchlist_history(limit)
+    history = get_watchlist_change_log(limit)
     if not history:
         print("No watchlist changes yet.")
         return
     for h in history:
-        print(f"  {h['timestamp'][:10]} {h['action'].upper():6} {h['ticker']}: {h['reason'][:60]}")
+        print(f"  {h['timestamp'][:10]} {h['action'].upper():7} {h['ticker']}: {h.get('reasoning', '')[:60]}")
 
 def watchlist_now():
     """Trigger an immediate watchlist management cycle."""
     log.info("Manual watchlist manager triggered")
     changes = run_watchlist_manager()
     if changes:
-        print(f"Complete: +{len(changes['adds'])} added, -{len(changes['removes'])} removed")
-        for a in changes["adds"]:
-            print(f"  + {a['ticker']}: {a['reason']}")
-        for r in changes["removes"]:
-            print(f"  - {r['ticker']}: {r['reason']}")
+        print(f"Complete: +{len(changes['added'])} added, -{len(changes['removed'])} removed")
+        for t in changes["added"]:
+            print(f"  + {t}")
+        for t in changes["removed"]:
+            print(f"  - {t}")
     else:
         print("No changes made")
 
 def show_watchlist_log(limit: int = 10):
     """Show recent watchlist changes."""
-    history = get_watchlist_history(limit)
+    history = get_watchlist_change_log(limit)
     if not history:
         print("No watchlist changes yet.")
         return
-    print(f"
-Last {len(history)} watchlist changes:")
+    print(f"\nLast {len(history)} watchlist changes:")
     for h in history:
-        action = "+" if h["action"] == "add" else "-"
-        print(f"  {h['timestamp'][:10]}  {action}{h['ticker']:<6}  {h['reason'][:60]}")
+        action = "+" if h["action"] == "added" else "-"
+        print(f"  {h['timestamp'][:10]}  {action}{h['ticker']:<6}  {h.get('reasoning', '')[:60]}")
 
 
 # ── Scheduler ─────────────────────────────────────────────────────────────────
@@ -336,16 +321,21 @@ if __name__ == "__main__":
 
     hour, minute = RUN_TIME_ET.split(":")
     et_tz = pytz.timezone("America/New_York")
-    scheduler = BlockingScheduler(timezone=et_tz)
+    scheduler = BackgroundScheduler(timezone=et_tz)
 
     scheduler.add_job(run_trading_cycle, CronTrigger(day_of_week="mon-fri", hour=int(hour), minute=int(minute), timezone=et_tz), id="trading_cycle", name="Daily trading cycle", misfire_grace_time=300)
     scheduler.add_job(run_intraday, CronTrigger(day_of_week="mon-fri", hour="9-15", minute="30", timezone=et_tz), id="intraday_monitor", name="Intraday monitor", misfire_grace_time=600)
     scheduler.add_job(run_morning_checks, CronTrigger(day_of_week="mon-fri", hour=9, minute=0, timezone=et_tz), id="morning_checks", name="Morning checks", misfire_grace_time=300)
     scheduler.add_job(run_weekly_maintenance, CronTrigger(day_of_week="sun", hour=20, minute=0, timezone=et_tz), id="weekly_maintenance", name="Weekly maintenance", misfire_grace_time=3600)
 
+    scheduler.start()
     log.info("Scheduler started. Jobs: daily 9:45 ET | intraday hourly | morning 9am | weekly Sun 8pm")
 
+    # BackgroundScheduler runs jobs in a background thread, so the main
+    # thread just sleeps here to keep the process alive.
     try:
-        scheduler.start()
-    except KeyboardInterrupt:
-        log.info("Bot stopped by user")
+        while True:
+            time.sleep(60)
+    except (KeyboardInterrupt, SystemExit):
+        scheduler.shutdown()
+        log.info("Bot stopped")
