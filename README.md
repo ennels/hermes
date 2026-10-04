@@ -2,7 +2,7 @@
 
 Autonomous paper-trading bot. Pulls market data and news, scores candidates with Claude and Gemini, filters them through layered risk rules, and executes through Alpaca — on a schedule, unattended.
 
-**Status:** ran on a DigitalOcean droplet March–[month] 2026, passing 18/19 self-validation checks in its last audit. Droplet decommissioned; code is complete and runnable. Paper trading only.
+**Status:** ran on a DigitalOcean droplet March–April 2026, passing 18/19 self-validation checks in its last audit. Droplet is now decommissioned; but the code is complete and runnable.
 
 ## What it does
 
@@ -16,7 +16,7 @@ Every weekday:
 | Sat 9:00 | Weekly validation report |
 | Sun 20:00 | Auto-tune strategy parameters |
 
-The watchlist maintains itself: Gemini proposes tickers across sectors, stale tickers are pruned, recently traded tickers sit out a cooldown.
+The watchlist maintains itself: Gemini proposes tickers across various sectors, stale tickers are pruned, recently traded tickers sit out with a cooldown.
 
 ## Architecture
 
@@ -50,10 +50,9 @@ Runs as a `systemd` service (`Restart=always`). Cron couldn't reliably source th
 
 ## Things I learned building it
 
-- **Gemini search grounding and structured output don't mix in one call.** Grounded requests return prose, which breaks JSON parsing. Fix: grounded call for analysis, second ungrounded call to convert to JSON.
-- **`BlockingScheduler` dies without a controlling terminal.** `BackgroundScheduler` plus a `while True: sleep(60)` keepalive is the pattern for a headless service.
-- **Wiring drifts silently.** After adding modules, adaptive-risk adjustments weren't reaching the advisor — no errors, just quietly wrong decisions. `validate.py` exists because of this; every new module gets an end-to-end check.
-- **Size swap conservatively.** 1 GB RAM + 2 GB swap was plenty for this workload.
+- **Linux command line**
+- **DigitalOcean droplet setup**
+- **API calls + connections**
 
 ## Stack
 
@@ -75,4 +74,4 @@ python main.py
 
 ## Disclaimer
 
-Paper trading only. Nothing here is financial advice. The strategy parameters are tuned for an aggressive paper account, not real money.
+Don't put your mortgage on this thing. The strategy parameters are tuned for an aggressive paper account, not real money.
