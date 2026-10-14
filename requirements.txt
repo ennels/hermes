@@ -2,9 +2,11 @@
 python-dotenv>=1.0.0
 requests>=2.31.0
 pandas>=2.0.0
+numpy>=1.24.0
 
-# Technical indicators (optional but recommended)
-pandas-ta>=0.3.14b
+# Technical indicators (optional but recommended; needs Python 3.12+,
+# otherwise data_fetcher falls back to manual RSI/MACD math)
+pandas-ta>=0.3.14b; python_version >= "3.12"
 
 # AI models
 anthropic>=0.25.0
